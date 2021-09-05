@@ -58,7 +58,7 @@ impl Snake {
                 x: head_pos.x - 1,
                 y: head_pos.y,
             },
-            _ => Position {
+            Direction::Right => Position {
                 x: head_pos.x + 1,
                 y: head_pos.y,
             },
