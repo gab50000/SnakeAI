@@ -27,3 +27,15 @@ fn test_snake_error_on_self_collision() {
         Err(snake::SnakeDeadError) => assert!(true),
     };
 }
+
+#[test]
+fn test_body_length_does_not_exceed_max_length() {
+    let mut snake = snake::Snake::new(Position { x: 0, y: 0 }, snake::Direction::Down);
+    let max_length = 3;
+    snake.set_max_length(max_length);
+
+    for _ in 0..5 {
+        snake.update().unwrap();
+    }
+    assert_eq!(snake.body().len(), max_length);
+}
