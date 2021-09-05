@@ -1,4 +1,4 @@
-use std::collections;
+use std::{collections, ptr};
 
 #[derive(Debug, Clone)]
 pub struct SnakeDeadError;
@@ -28,6 +28,15 @@ impl Snake {
             body: collections::VecDeque::from(vec![pos]),
             direction: direction,
             max_length: 1,
+        }
+    }
+
+    pub fn new_body(positions: Vec<Position>, direction: Direction) -> Snake {
+        let max_length = positions.len();
+        Snake {
+            body: collections::VecDeque::from(positions),
+            direction,
+            max_length,
         }
     }
 
@@ -74,5 +83,24 @@ impl Snake {
         let body_without_head: Vec<&Position> = self.body.range(0..current_length - 1).collect();
         let head = self.body.back().unwrap();
         return body_without_head.contains(&head);
+    }
+
+    pub fn collision_with_other(&self, other: &Snake) -> bool {
+        if ptr::eq(self, other) {
+            return false;
+        }
+
+        let own_head = self.body.back().unwrap();
+        let other_head = other.body.back().unwrap();
+        other.body.contains(own_head) || self.body.contains(other_head)
+    }
+
+    pub fn collision_with_others(&self, snakes: &Vec<Snake>) -> bool {
+        for snake in snakes.iter() {
+            if self.collision_with_other(snake) {
+                return true;
+            }
+        }
+        false
     }
 }
