@@ -40,3 +40,29 @@ fn test_body_length_does_not_exceed_max_length() {
     }
     assert_eq!(snake.body().len(), max_length);
 }
+
+#[test]
+fn test_multi_collision() {
+    let snake1 = snake::Snake::new_body(
+        vec![
+            Position { x: 0, y: 0 },
+            Position { x: 1, y: 0 },
+            Position { x: 2, y: 0 },
+            Position { x: 3, y: 0 },
+        ],
+        snake::Direction::Right,
+    );
+    let snake2 = snake::Snake::new_body(
+        vec![
+            Position { x: 3, y: -3 },
+            Position { x: 3, y: -2 },
+            Position { x: 3, y: -1 },
+            Position { x: 3, y: 0 },
+        ],
+        snake::Direction::Right,
+    );
+    let snake3 = snake::Snake::new_body(
+        vec![Position { x: 3, y: -3 }, Position { x: 4, y: -3 }],
+        snake::Direction::Right,
+    );
+}
