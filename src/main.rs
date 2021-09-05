@@ -14,14 +14,20 @@ fn main() -> Result<(), io::Error> {
     let mut terminal = Terminal::new(backend)?;
 
     terminal.clear()?;
-    for i in 1..10 {
+    for i in 1..100 {
         terminal.draw(|frame| {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Percentage(100)].as_ref())
                 .split(frame.size());
-            let block = Block::default().title("Hello");
-            frame.render_widget(block, chunks[0]);
+            let canvas = Canvas::default()
+                .block(Block::default().borders(Borders::ALL).title("World"))
+                .paint(|ctx| {
+                    ctx.print(i as f64, i as f64, "Hello there", Color::Red);
+                })
+                .x_bounds([-100.0, 100.0])
+                .y_bounds([-100.0, 100.0]);
+            frame.render_widget(canvas, chunks[0]);
             thread::sleep(time::Duration::from_millis(100));
         })?;
     }
