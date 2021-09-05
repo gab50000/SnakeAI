@@ -43,7 +43,7 @@ impl Snake {
         self.direction = new_direction;
     }
 
-    pub fn update(&mut self) -> Result<(), SnakeDeadError> {
+    pub fn update(&mut self) {
         let head_pos = self.body.back().unwrap();
         let new_pos = match self.direction {
             Direction::Down => Position {
@@ -64,16 +64,15 @@ impl Snake {
             },
         };
 
-        if self.body.contains(&new_pos) {
-            return Err(SnakeDeadError);
-        }
-
         self.body.push_back(new_pos);
-
         if self.body.len() > self.max_length {
             self.body.pop_front();
         }
-
-        Ok(())
+    }
+    pub fn self_collision(&self) -> bool {
+        let current_length = self.body.len();
+        let body_without_head: Vec<&Position> = self.body.range(0..current_length - 1).collect();
+        let head = self.body.back().unwrap();
+        return body_without_head.contains(&head);
     }
 }
