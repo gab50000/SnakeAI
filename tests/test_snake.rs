@@ -62,7 +62,17 @@ fn test_multi_collision() {
         snake::Direction::Right,
     );
     let snake3 = snake::Snake::new_body(
-        vec![Position { x: 3, y: -3 }, Position { x: 4, y: -3 }],
+        vec![Position { x: 4, y: -3 }, Position { x: 3, y: -3 }],
         snake::Direction::Right,
     );
+
+    assert!(snake1.collision_with_others(&vec![&snake2, &snake3]));
+    assert!(!snake1.collision_with_others(&vec![&snake1, &snake3]));
+
+    assert!(snake2.collision_with_others(&vec![&snake1]));
+    assert!(snake2.collision_with_others(&vec![&snake3]));
+    assert!(!snake2.collision_with_others(&vec![&snake2]));
+
+    assert!(snake3.collision_with_others(&vec![&snake1, &snake2]));
+    assert!(!snake3.collision_with_others(&vec![&snake1, &snake3]));
 }
