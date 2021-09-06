@@ -30,8 +30,8 @@ impl Game {
             }
         }
 
-        for idx in indices_to_be_deleted.iter().rev() {
-            self.snakes.remove(*idx);
+        for &idx in indices_to_be_deleted.iter().rev() {
+            self.snakes.remove(idx);
         }
     }
 }
