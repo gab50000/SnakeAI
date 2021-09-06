@@ -9,6 +9,7 @@ pub struct Position {
     pub y: i64,
 }
 
+#[derive(Clone, Copy)]
 pub enum Direction {
     Up,
     Down,
@@ -95,7 +96,7 @@ impl Snake {
         other.body.contains(own_head) || self.body.contains(other_head)
     }
 
-    pub fn collision_with_others(&self, snakes: &Vec<Snake>) -> bool {
+    pub fn collision_with_others(&self, snakes: &Vec<&Snake>) -> bool {
         for snake in snakes.iter() {
             if self.collision_with_other(snake) {
                 return true;
