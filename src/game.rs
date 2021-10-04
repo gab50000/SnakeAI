@@ -11,7 +11,7 @@ impl Fruit {
     }
 }
 
-struct Game {
+pub struct Game {
     snakes: Vec<Snake>,
     fruits: Vec<Fruit>,
 }
