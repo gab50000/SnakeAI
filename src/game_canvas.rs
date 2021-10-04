@@ -1,3 +1,4 @@
+use std::boxed::Box;
 use std::io;
 use std::io::Stdout;
 
@@ -24,21 +25,24 @@ impl Drawable for snake::Snake {
     }
 }
 
-struct GameCanvas {
+struct GameCanvas<'a> {
     width: i64,
     height: i64,
     terminal: Terminal<TermionBackend<RawTerminal<Stdout>>>,
+    canvas: Box<Canvas<'a, Box<dyn Fn(&mut Context) -> ()>>>,
 }
 
-impl GameCanvas {
-    fn new() -> Result<GameCanvas, io::Error> {
+impl<'a> GameCanvas<'a> {
+    fn new() -> Result<GameCanvas<'a>, io::Error> {
         let stdout = io::stdout().into_raw_mode()?;
         let backend = TermionBackend::new(stdout);
         let terminal = Terminal::new(backend)?;
+        let canvas = Box::new(Canvas::default());
         Ok(GameCanvas {
             width: 1,
             height: 1,
             terminal,
+            canvas,
         })
     }
 
