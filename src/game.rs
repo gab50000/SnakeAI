@@ -1,4 +1,5 @@
-use crate::snake::{Position, Snake};
+use crate::snake::{Direction, Position, Snake};
+use std::collections;
 
 #[derive(Debug, Clone, Copy)]
 struct Fruit {
@@ -17,7 +18,16 @@ pub struct Game {
 }
 
 impl Game {
-    fn update(&mut self) {
+    pub fn new(pos: Position) -> Self {
+        let snake = Snake::new(pos, Direction::Right);
+
+        Self {
+            snakes: vec![snake],
+            fruits: vec![],
+        }
+    }
+
+    pub fn update(&mut self) {
         for snake in self.snakes.iter_mut() {
             snake.update();
         }
@@ -33,5 +43,8 @@ impl Game {
         for &idx in indices_to_be_deleted.iter().rev() {
             self.snakes.remove(idx);
         }
+    }
+    pub fn snakes(&self) -> &Vec<Snake> {
+        &self.snakes
     }
 }
