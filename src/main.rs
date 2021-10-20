@@ -22,15 +22,21 @@ enum Action {
     Quit,
 }
 
-fn wait_for_input(tx: mpsc::SyncSender<Option<termion::event::Key>>) {
+type MaybeKey = Option<termion::event::Key>;
+fn wait_for_input(tx: mpsc::SyncSender<MaybeKey>) -> Result<(), mpsc::SendError<MaybeKey>> {
     let stdin = io::stdin();
     let events = stdin.events();
     for event in events {
         match event {
-            Ok(Event::Key(key)) => tx.send(Some(key)),
+            Ok(Event::Key(Key::Char('q'))) => {
+                tx.send(Some(Key::Char('q')))?;
+                break;
+            }
+            Ok(Event::Key(key)) => tx.send(Some(key))?,
             _ => break,
         };
     }
+    Ok(())
 }
 
 struct InputHandler {
