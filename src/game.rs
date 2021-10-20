@@ -47,4 +47,8 @@ impl Game {
     pub fn snakes(&self) -> &Vec<Snake> {
         &self.snakes
     }
+
+    pub fn update_snake(&mut self, i: usize, new_direction: Direction) {
+        self.snakes[i].set_direction(new_direction)
+    }
 }
