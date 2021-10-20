@@ -33,16 +33,29 @@ fn wait_for_input(tx: mpsc::SyncSender<Option<termion::event::Key>>) {
     }
 }
 
-fn handle_input(rx: &mpsc::Receiver<Option<termion::event::Key>>) -> Option<termion::event::Key> {
-    let key = rx.try_recv();
-    match key {
-        Ok(x) => x,
-        _ => None,
+struct InputHandler {
+    rx: mpsc::Receiver<Option<termion::event::Key>>,
+}
+
+impl InputHandler {
+    pub fn new() -> Self {
+        let (tx, rx) = mpsc::sync_channel(1);
+        let obj = Self { rx };
+        thread::spawn(move || wait_for_input(tx));
+        obj
+    }
+
+    pub fn next(&self) -> Option<termion::event::Key> {
+        let key = self.rx.try_recv();
+        match key {
+            Ok(x) => x,
+            _ => None,
+        }
     }
 }
 
-fn determine_action(rx: &mpsc::Receiver<Option<termion::event::Key>>) -> Option<Action> {
-    match handle_input(rx) {
+fn determine_action(input_handler: &InputHandler) -> Option<Action> {
+    match input_handler.next() {
         Some(c) => match c {
             Key::Char('q') => Some(Action::Quit),
             Key::Left => Some(Action::Left),
@@ -63,7 +76,6 @@ fn set_layout(area: tui::layout::Rect) -> Vec<tui::layout::Rect> {
 }
 
 fn main() -> Result<(), io::Error> {
-    let mut run = true;
     let stdout = io::stdout().into_raw_mode()?;
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
@@ -73,12 +85,10 @@ fn main() -> Result<(), io::Error> {
 
     terminal.hide_cursor()?;
     terminal.clear()?;
-    let game_canvas = GameCanvas::new();
 
-    let (tx, rx) = mpsc::sync_channel(1);
-    let handle = thread::spawn(|| wait_for_input(tx));
+    let input_handler = InputHandler::new();
 
-    while run {
+    loop {
         terminal.draw(|frame| {
             let chunks = set_layout(frame.size());
             let canvas = Canvas::default()
@@ -91,7 +101,7 @@ fn main() -> Result<(), io::Error> {
                 .y_bounds([-100.0, 100.0]);
             frame.render_widget(canvas, chunks[0]);
         })?;
-        if let Some(action) = determine_action(&rx) {
+        if let Some(action) = determine_action(&input_handler) {
             match action {
                 Action::Down => game.update_snake(0, snake::Direction::Down),
                 Action::Up => game.update_snake(0, snake::Direction::Up),
