@@ -14,20 +14,43 @@ use tui::widgets::canvas::{Canvas, Line, Map, MapResolution, Rectangle};
 use tui::widgets::{Block, Borders};
 use tui::Terminal;
 
-fn wait_for_input(tx: mpsc::Sender<Option<char>>) {
+enum Action {
+    Up,
+    Down,
+    Left,
+    Right,
+    Quit,
+}
+
+fn wait_for_input(tx: mpsc::SyncSender<Option<termion::event::Key>>) {
     let stdin = io::stdin();
-    for event in stdin.events() {
+    let events = stdin.events();
+    for event in events {
         match event {
-            Ok(Event::Key(Key::Char(x))) => tx.send(Some(x)),
-            _ => tx.send(None),
+            Ok(Event::Key(key)) => tx.send(Some(key)),
+            _ => break,
         };
     }
 }
 
-fn handle_input(rx: &mpsc::Receiver<Option<char>>) -> Option<char> {
+fn handle_input(rx: &mpsc::Receiver<Option<termion::event::Key>>) -> Option<termion::event::Key> {
     let key = rx.try_recv();
     match key {
         Ok(x) => x,
+        _ => None,
+    }
+}
+
+fn determine_action(rx: &mpsc::Receiver<Option<termion::event::Key>>) -> Option<Action> {
+    match handle_input(rx) {
+        Some(c) => match c {
+            Key::Char('q') => Some(Action::Quit),
+            Key::Left => Some(Action::Left),
+            Key::Right => Some(Action::Right),
+            Key::Up => Some(Action::Up),
+            Key::Down => Some(Action::Down),
+            _ => None,
+        },
         _ => None,
     }
 }
@@ -44,7 +67,6 @@ fn main() -> Result<(), io::Error> {
     let stdout = io::stdout().into_raw_mode()?;
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    let stdin = termion::async_stdin().keys();
     let mut i = 0;
 
     let mut game = Game::new(snake::Position { x: 0, y: 0 });
@@ -53,8 +75,8 @@ fn main() -> Result<(), io::Error> {
     terminal.clear()?;
     let game_canvas = GameCanvas::new();
 
-    let (tx, rx) = mpsc::channel();
-    thread::spawn(|| wait_for_input(tx));
+    let (tx, rx) = mpsc::sync_channel(1);
+    let handle = thread::spawn(|| wait_for_input(tx));
 
     while run {
         terminal.draw(|frame| {
@@ -69,15 +91,16 @@ fn main() -> Result<(), io::Error> {
                 .y_bounds([-100.0, 100.0]);
             frame.render_widget(canvas, chunks[0]);
         })?;
-        if let Some(input) = handle_input(&rx) {
-            match input {
-                'q' => {
-                    run = false;
-                }
-                _ => {}
+        if let Some(action) = determine_action(&rx) {
+            match action {
+                Action::Down => game.update_snake(0, snake::Direction::Down),
+                Action::Up => game.update_snake(0, snake::Direction::Up),
+                Action::Left => game.update_snake(0, snake::Direction::Left),
+                Action::Right => game.update_snake(0, snake::Direction::Right),
+                Action::Quit => break,
             }
         };
-        thread::sleep(time::Duration::from_millis(100));
+        thread::sleep(time::Duration::from_millis(16));
         i = (i + 1) % 100;
         game.update();
     }
