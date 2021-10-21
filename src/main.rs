@@ -23,22 +23,6 @@ enum Action {
 }
 
 type MaybeKey = Option<termion::event::Key>;
-fn wait_for_input(tx: mpsc::SyncSender<MaybeKey>) -> Result<(), mpsc::SendError<MaybeKey>> {
-    let stdin = io::stdin();
-    let events = stdin.events();
-    for event in events {
-        match event {
-            Ok(Event::Key(Key::Char('q'))) => {
-                tx.send(Some(Key::Char('q')))?;
-                break;
-            }
-            Ok(Event::Key(key)) => tx.send(Some(key))?,
-            _ => break,
-        };
-    }
-    Ok(())
-}
-
 struct InputHandler {
     rx: mpsc::Receiver<Option<termion::event::Key>>,
 }
@@ -47,7 +31,7 @@ impl InputHandler {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::sync_channel(1);
         let obj = Self { rx };
-        thread::spawn(move || wait_for_input(tx));
+        thread::spawn(move || Self::wait_for_input(tx));
         obj
     }
 
@@ -58,19 +42,35 @@ impl InputHandler {
             _ => None,
         }
     }
-}
 
-fn determine_action(input_handler: &InputHandler) -> Option<Action> {
-    match input_handler.next() {
-        Some(c) => match c {
-            Key::Char('q') => Some(Action::Quit),
-            Key::Left => Some(Action::Left),
-            Key::Right => Some(Action::Right),
-            Key::Up => Some(Action::Up),
-            Key::Down => Some(Action::Down),
+    fn wait_for_input(tx: mpsc::SyncSender<MaybeKey>) -> Result<(), mpsc::SendError<MaybeKey>> {
+        let stdin = io::stdin();
+        let events = stdin.events();
+        for event in events {
+            match event {
+                Ok(Event::Key(Key::Char('q'))) => {
+                    tx.send(Some(Key::Char('q')))?;
+                    break;
+                }
+                Ok(Event::Key(key)) => tx.send(Some(key))?,
+                _ => break,
+            };
+        }
+        Ok(())
+    }
+
+    fn determine_action(&self) -> Option<Action> {
+        match self.next() {
+            Some(c) => match c {
+                Key::Char('q') => Some(Action::Quit),
+                Key::Left => Some(Action::Left),
+                Key::Right => Some(Action::Right),
+                Key::Up => Some(Action::Up),
+                Key::Down => Some(Action::Down),
+                _ => None,
+            },
             _ => None,
-        },
-        _ => None,
+        }
     }
 }
 
@@ -104,10 +104,10 @@ fn main() -> Result<(), io::Error> {
                     game.draw(ctx);
                 })
                 .x_bounds([-100.0, 100.0])
-                .y_bounds([-100.0, 100.0]);
+                .y_bounds([-30.0, 30.0]);
             frame.render_widget(canvas, chunks[0]);
         })?;
-        if let Some(action) = determine_action(&input_handler) {
+        if let Some(action) = input_handler.determine_action() {
             match action {
                 Action::Down => game.update_snake(0, snake::Direction::Down),
                 Action::Up => game.update_snake(0, snake::Direction::Up),
@@ -120,5 +120,6 @@ fn main() -> Result<(), io::Error> {
         i = (i + 1) % 100;
         game.update();
     }
+    terminal.clear()?;
     Ok(())
 }
