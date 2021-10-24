@@ -2,13 +2,17 @@ use crate::snake::{Direction, Position, Snake};
 use std::collections;
 
 #[derive(Debug, Clone, Copy)]
-struct Fruit {
+pub struct Fruit {
     position: Position,
 }
 
 impl Fruit {
     fn new(position: Position) -> Fruit {
         Fruit { position: position }
+    }
+
+    pub fn position(&self) -> &Position {
+        &self.position
     }
 }
 
@@ -46,6 +50,10 @@ impl Game {
     }
     pub fn snakes(&self) -> &Vec<Snake> {
         &self.snakes
+    }
+
+    pub fn fruits(&self) -> &Vec<Fruit> {
+        &self.fruits
     }
 
     pub fn update_snake(&mut self, i: usize, new_direction: Direction) {
