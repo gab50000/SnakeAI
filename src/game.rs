@@ -1,5 +1,8 @@
-use crate::snake::{Direction, Position, Snake};
-use std::collections;
+use crate::{
+    game_canvas::Drawable,
+    snake::{Direction, Position, Snake, Snakeable},
+};
+use std::{collections, ops::DerefMut};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Fruit {
@@ -16,15 +19,15 @@ impl Fruit {
     }
 }
 
+// trait DrawSnakeable: Snakeable + Drawable {}
+
 pub struct Game {
-    snakes: Vec<Snake>,
+    snakes: Vec<Box<dyn Snakeable>>,
     fruits: Vec<Fruit>,
 }
 
 impl Game {
-    pub fn new(pos: Position) -> Self {
-        let snake = Snake::new(pos, Direction::Right);
-
+    pub fn new(snake: Box<dyn Snakeable>) -> Self {
         Self {
             snakes: vec![snake],
             fruits: vec![],
@@ -33,12 +36,15 @@ impl Game {
 
     pub fn update(&mut self) {
         for snake in self.snakes.iter_mut() {
-            snake.update();
+            snake.get_mut_snake().update();
         }
 
         let mut indices_to_be_deleted = Vec::new();
         for (idx, snake) in self.snakes.iter().enumerate() {
-            if snake.self_collision() || snake.collision_with_others(&self.snakes.iter().collect())
+            if snake.get_snake().self_collision()
+                || snake
+                    .get_snake()
+                    .collision_with_others(&self.snakes.iter().collect::<Vec<&Box<Snakeable>>>())
             {
                 indices_to_be_deleted.push(idx);
             }
@@ -48,7 +54,7 @@ impl Game {
             self.snakes.remove(idx);
         }
     }
-    pub fn snakes(&self) -> &Vec<Snake> {
+    pub fn snakes(&self) -> &Vec<Box<Snakeable>> {
         &self.snakes
     }
 
@@ -57,6 +63,9 @@ impl Game {
     }
 
     pub fn update_snake(&mut self, i: usize, new_direction: Direction) {
-        self.snakes[i].set_direction(new_direction)
+        self.snakes[i]
+            .deref_mut()
+            .get_mut_snake()
+            .set_direction(new_direction)
     }
 }

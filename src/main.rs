@@ -1,6 +1,7 @@
 use snake_ai::game::{self, Game};
 use snake_ai::game_canvas::{Drawable, GameCanvas};
 use snake_ai::input_handler::{Action, InputHandler};
+use snake_ai::input_snake;
 use snake_ai::snake;
 use std::{error::Error, io, time::Duration};
 use std::{thread, time};
@@ -27,12 +28,12 @@ fn main() -> Result<(), io::Error> {
     let mut terminal = Terminal::new(backend)?;
     let mut i = 0;
 
-    let mut game = Game::new(snake::Position { x: 0, y: 0 });
-
     terminal.hide_cursor()?;
     terminal.clear()?;
 
-    let input_handler = InputHandler::new();
+    let input_snake =
+        input_snake::InputSnake::new(snake::Position { x: 0, y: 0 }, snake::Direction::Up);
+    let mut game = Game::new(Box::new(input_snake));
 
     loop {
         terminal.draw(|frame| {
@@ -47,15 +48,6 @@ fn main() -> Result<(), io::Error> {
                 .y_bounds([-30.0, 30.0]);
             frame.render_widget(canvas, chunks[0]);
         })?;
-        if let Some(action) = input_handler.determine_action() {
-            match action {
-                Action::Down => game.update_snake(0, snake::Direction::Down),
-                Action::Up => game.update_snake(0, snake::Direction::Up),
-                Action::Left => game.update_snake(0, snake::Direction::Left),
-                Action::Right => game.update_snake(0, snake::Direction::Right),
-                Action::Quit => break,
-            }
-        };
         thread::sleep(time::Duration::from_millis(16));
         i = (i + 1) % 100;
         game.update();

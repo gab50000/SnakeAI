@@ -23,6 +23,11 @@ pub struct Snake {
     max_length: usize,
 }
 
+pub trait Snakeable {
+    fn get_snake(&self) -> &Snake;
+    fn get_mut_snake(&mut self) -> &mut Snake;
+}
+
 impl Snake {
     pub fn new(pos: Position, direction: Direction) -> Snake {
         Snake {
@@ -49,8 +54,14 @@ impl Snake {
         self.max_length = new_length;
     }
 
-    pub fn set_direction(&mut self, new_direction: Direction) {
-        self.direction = new_direction;
+    pub fn collision_with_other(&self, other: &Snakeable) -> bool {
+        if ptr::eq(self, other.get_snake()) {
+            return false;
+        }
+
+        let own_head = self.body.back().unwrap();
+        let other_head = other.get_snake().body.back().unwrap();
+        other.get_snake().body.contains(own_head) || self.body.contains(other_head)
     }
 
     pub fn update(&mut self) {
@@ -79,6 +90,11 @@ impl Snake {
             self.body.pop_front();
         }
     }
+
+    pub fn set_direction(&mut self, new_direction: Direction) {
+        self.direction = new_direction;
+    }
+
     pub fn self_collision(&self) -> bool {
         let current_length = self.body.len();
         let body_without_head: Vec<&Position> = self.body.range(0..current_length - 1).collect();
@@ -86,22 +102,22 @@ impl Snake {
         return body_without_head.contains(&head);
     }
 
-    pub fn collision_with_other(&self, other: &Snake) -> bool {
-        if ptr::eq(self, other) {
-            return false;
-        }
-
-        let own_head = self.body.back().unwrap();
-        let other_head = other.body.back().unwrap();
-        other.body.contains(own_head) || self.body.contains(other_head)
-    }
-
-    pub fn collision_with_others(&self, snakes: &Vec<&Snake>) -> bool {
+    pub fn collision_with_others(&self, snakes: &Vec<&Box<Snakeable>>) -> bool {
         for snake in snakes.iter() {
-            if self.collision_with_other(snake) {
+            if self.collision_with_other(snake.get_snake()) {
                 return true;
             }
         }
         false
+    }
+}
+
+impl Snakeable for Snake {
+    fn get_snake(&self) -> &Snake {
+        return self;
+    }
+
+    fn get_mut_snake(&mut self) -> &mut Snake {
+        return self;
     }
 }

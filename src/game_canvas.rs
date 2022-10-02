@@ -40,7 +40,7 @@ impl Drawable for game::Fruit {
 impl Drawable for game::Game {
     fn draw(&self, ctx: &mut Context) {
         for snake in self.snakes() {
-            snake.draw(ctx);
+            snake.get_snake().draw(ctx);
         }
 
         for fruit in self.fruits() {
