@@ -37,4 +37,7 @@ impl Snakeable for InputSnake {
     fn get_mut_snake(&mut self) -> &mut snake::Snake {
         return &mut self.snake;
     }
+    fn update_direction(&mut self) {
+        self.update_direction();
+    }
 }

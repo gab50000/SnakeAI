@@ -36,6 +36,7 @@ impl Game {
 
     pub fn update(&mut self) {
         for snake in self.snakes.iter_mut() {
+            snake.update_direction();
             snake.get_mut_snake().update();
         }
 
@@ -63,9 +64,6 @@ impl Game {
     }
 
     pub fn update_snake(&mut self, i: usize, new_direction: Direction) {
-        self.snakes[i]
-            .deref_mut()
-            .get_mut_snake()
-            .set_direction(new_direction)
+        self.snakes[i].get_mut_snake().set_direction(new_direction)
     }
 }

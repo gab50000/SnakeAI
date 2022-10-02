@@ -26,6 +26,7 @@ pub struct Snake {
 pub trait Snakeable {
     fn get_snake(&self) -> &Snake;
     fn get_mut_snake(&mut self) -> &mut Snake;
+    fn update_direction(&mut self);
 }
 
 impl Snake {
@@ -120,4 +121,6 @@ impl Snakeable for Snake {
     fn get_mut_snake(&mut self) -> &mut Snake {
         return self;
     }
+
+    fn update_direction(&mut self) {}
 }
