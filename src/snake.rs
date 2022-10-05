@@ -103,7 +103,7 @@ impl Snake {
         return body_without_head.contains(&head);
     }
 
-    pub fn collision_with_others(&self, snakes: &Vec<&Box<dyn Snakeable>>) -> bool {
+    pub fn collision_with_others<T: Snakeable + ?Sized>(&self, snakes: &Vec<&Box<T>>) -> bool {
         for snake in snakes.iter() {
             if self.collision_with_other(snake.get_snake()) {
                 return true;

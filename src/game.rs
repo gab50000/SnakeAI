@@ -43,9 +43,9 @@ impl Game {
         let mut indices_to_be_deleted = Vec::new();
         for (idx, snake) in self.snakes.iter().enumerate() {
             if snake.get_snake().self_collision()
-                || snake.get_snake().collision_with_others(
-                    &self.snakes.iter().collect::<Vec<&Box<dyn Snakeable>>>(),
-                )
+                || snake
+                    .get_snake()
+                    .collision_with_others(&self.snakes.iter().collect())
             {
                 indices_to_be_deleted.push(idx);
             }

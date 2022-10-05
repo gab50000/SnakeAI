@@ -1,4 +1,4 @@
-use snake_ai::snake::{self, Position};
+use snake_ai::snake::{self, Position, Snakeable};
 
 #[test]
 fn test_snake_update() {
@@ -43,7 +43,7 @@ fn test_body_length_does_not_exceed_max_length() {
 
 #[test]
 fn test_multi_collision() {
-    let snake1 = snake::Snake::new_body(
+    let snake1 = Box::new(snake::Snake::new_body(
         vec![
             Position { x: 0, y: 0 },
             Position { x: 1, y: 0 },
@@ -51,8 +51,8 @@ fn test_multi_collision() {
             Position { x: 3, y: 0 },
         ],
         snake::Direction::Right,
-    );
-    let snake2 = snake::Snake::new_body(
+    ));
+    let snake2 = Box::new(snake::Snake::new_body(
         vec![
             Position { x: 3, y: -3 },
             Position { x: 3, y: -2 },
@@ -60,11 +60,11 @@ fn test_multi_collision() {
             Position { x: 3, y: 0 },
         ],
         snake::Direction::Right,
-    );
-    let snake3 = snake::Snake::new_body(
+    ));
+    let snake3 = Box::new(snake::Snake::new_body(
         vec![Position { x: 4, y: -3 }, Position { x: 3, y: -3 }],
         snake::Direction::Right,
-    );
+    ));
 
     assert!(snake1.collision_with_others(&vec![&snake2, &snake3]));
     assert!(!snake1.collision_with_others(&vec![&snake1, &snake3]));
