@@ -55,7 +55,7 @@ impl Snake {
         self.max_length = new_length;
     }
 
-    pub fn collision_with_other(&self, other: &Snakeable) -> bool {
+    pub fn collision_with_other(&self, other: &dyn Snakeable) -> bool {
         if ptr::eq(self, other.get_snake()) {
             return false;
         }
@@ -103,7 +103,7 @@ impl Snake {
         return body_without_head.contains(&head);
     }
 
-    pub fn collision_with_others(&self, snakes: &Vec<&Box<Snakeable>>) -> bool {
+    pub fn collision_with_others(&self, snakes: &Vec<&Box<dyn Snakeable>>) -> bool {
         for snake in snakes.iter() {
             if self.collision_with_other(snake.get_snake()) {
                 return true;
@@ -122,5 +122,19 @@ impl Snakeable for Snake {
         return self;
     }
 
-    fn update_direction(&mut self) {}
+    fn update_direction(&mut self) {
+        self.update_direction();
+    }
+}
+
+impl Snakeable for Box<Snake> {
+    fn get_snake(&self) -> &Snake {
+        return self.as_ref().get_snake();
+    }
+    fn get_mut_snake(&mut self) -> &mut Snake {
+        return self.as_mut().get_mut_snake();
+    }
+    fn update_direction(&mut self) {
+        self.as_mut().update_direction();
+    }
 }
